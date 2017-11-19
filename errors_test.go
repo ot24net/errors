@@ -9,7 +9,8 @@ import (
 func TestNew(t *testing.T) {
 	code := "new test"
 
-	// way 1
+	// way 1 to make error
+	// errors.New()
 	e := New(code)
 	if e.Code() != code {
 		t.Fatalf("want:%s,but:%s", code, e.Code())
@@ -19,7 +20,8 @@ func TestNew(t *testing.T) {
 		t.Fatal(e)
 	}
 
-	// way 2
+	// way 2 to make error
+	// errors.As()
 	eAs := As(e, "this is value copy for As, not same as before")
 	if eAs.Code() != code {
 		t.Fatalf("want:%s,but:%s", code, eAs.Code())
@@ -30,8 +32,9 @@ func TestNew(t *testing.T) {
 		return
 	}
 
-	// way 3
-	eParseErr := ParseErr(e)
+	// way 3 to make error
+	// errors.ParseError(error)
+	eParseErr := ParseError(e)
 	if eParseErr.Code() != code {
 		t.Fatalf("want:%s,but:%s", code, eParseErr.Code())
 		return
@@ -41,7 +44,8 @@ func TestNew(t *testing.T) {
 		return
 	}
 
-	// way 4
+	// way 4 to make error
+	// errors.Parse(string)
 	eParse := Parse(e.Error())
 	if eParse.Code() != code {
 		t.Fatalf("want:%s,but:%s", code, eParse.Code())
@@ -55,18 +59,18 @@ var equalTests = []struct {
 	out  bool
 }{
 	{New("New"), New("New"), true},
-	{New("New"), ParseErr(New("New")), true},
-	{New("New"), ParseErr(errors.New("New")), true},
+	{New("New"), ParseError(New("New")), true},
+	{New("New"), ParseError(errors.New("New")), true},
 	{New("New"), As(New("New")), true},
 	{New("New"), As(errors.New("New")), true},
 	{New("New"), As(New("New"), "reason"), true},
 	{New("New"), As(errors.New("New"), "reason"), true},
-	{ParseErr(New("ParseErr")), ParseErr(New("ParseErr")), true},
-	{ParseErr(New("ParseErr")), ParseErr(errors.New("ParseErr")), true},
-	{ParseErr(New("ParseErr")), As(New("ParseErr")), true},
-	{ParseErr(New("ParseErr")), As(errors.New("ParseErr")), true},
-	{ParseErr(New("ParseErr")), As(New("ParseErr"), "reason"), true},
-	{ParseErr(New("ParseErr")), As(errors.New("ParseErr"), "reason"), true},
+	{ParseError(New("ParseErr")), ParseError(New("ParseErr")), true},
+	{ParseError(New("ParseErr")), ParseError(errors.New("ParseErr")), true},
+	{ParseError(New("ParseErr")), As(New("ParseErr")), true},
+	{ParseError(New("ParseErr")), As(errors.New("ParseErr")), true},
+	{ParseError(New("ParseErr")), As(New("ParseErr"), "reason"), true},
+	{ParseError(New("ParseErr")), As(errors.New("ParseErr"), "reason"), true},
 }
 
 func TestEqual(t *testing.T) {

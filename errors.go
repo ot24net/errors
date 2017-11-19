@@ -15,7 +15,7 @@ type Error interface {
 	// extends for error interface
 	Error() string
 	// extends for json custom interface,
-	// MarshalJSON() ([]byte, error)
+	MarshalJSON() ([]byte, error)
 
 	// return error code
 	Code() string
@@ -49,10 +49,10 @@ type Error interface {
 // Return
 // return ture is same, or return false.
 func Equal(err1 error, err2 error) bool {
-	return errEqual(err1, err2)
+	return equal(err1, err2)
 }
 
-func errEqual(err1 error, err2 error) bool {
+func equal(err1 error, err2 error) bool {
 	// memory compare
 	if err1 == err2 {
 		return true
@@ -61,8 +61,8 @@ func errEqual(err1 error, err2 error) bool {
 		return false
 	}
 
-	// check Err type
-	// if they are Err type,using errImpl compare.
+	// check Error type
+	// if they are Error type,using errImpl compare.
 	eImpl1, ok1 := err1.(*errImpl)
 	eImpl2, ok2 := err2.(*errImpl)
 	if ok1 && ok2 {
@@ -90,13 +90,13 @@ type errImpl struct {
 }
 
 // New
-// create an Err implement error interface.
+// create an Error implement error interface.
 //
 // Param
 // code -- code or msg for the error struct,it will be a key.
 //
 // Return
-// return a new Err interface
+// return a new Error interface
 func New(code string) Error {
 	return &errImpl{
 		ErrData{
@@ -107,8 +107,8 @@ func New(code string) Error {
 	}
 }
 
-// ParseErr
-// Parse a standar error to Err interface.
+// ParseError
+// Parse a standar error to Error interface.
 // if the parameter is belong to Err, do a value copy an return a new Err.
 // or parse string with error.Error(),
 // if the string have a json struct with Err.Error(),return the origin struct with a new Err.
@@ -122,8 +122,8 @@ func New(code string) Error {
 // src -- any error who implement error interface.
 //
 // Return
-// return a new Err interface.
-func ParseErr(src error) Error {
+// return a new Error interface.
+func ParseError(src error) Error {
 	if src == nil {
 		return nil
 	}
@@ -156,7 +156,7 @@ func As(err error, reason ...interface{}) Error {
 	if err == nil {
 		return nil
 	}
-	e := ParseErr(err).(*errImpl)
+	e := ParseError(err).(*errImpl)
 	e.data.Reason = append(e.data.Reason, reason)
 	e.data.Where = append(e.data.Where, caller(2))
 	return e
@@ -225,7 +225,7 @@ func (e *errImpl) MarshalJSON() ([]byte, error) {
 }
 
 func (e *errImpl) Equal(l error) bool {
-	return errEqual(e, l)
+	return equal(e, l)
 }
 
 func (e *errImpl) As(reason ...interface{}) Error {
