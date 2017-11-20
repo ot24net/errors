@@ -12,21 +12,22 @@ var (
 )
 
 type Error interface {
-	// extends for error interface
+	// extends for error interface.
 	Error() string
 	// extends for json custom interface,
+	// and it can be use as value for errors.As().
 	MarshalJSON() ([]byte, error)
 
-	// return error code
+	// return error code.
 	Code() string
 
-	// Set error reason and positoin
+	// Add reason and caller positoin for error.
 	//
 	// call as :
 	// err.As(reason)
 	// or errors.As(err, reason)
 	//
-	// return it self
+	// append reason and return it self
 	As(arg ...interface{}) Error
 
 	// Compare error code
@@ -37,17 +38,14 @@ type Error interface {
 }
 
 // Equal
-// compare err1 and err2 is same in memory index,error data or key code in engine/Err.
-//
-// Spec
-// if Error Data is format with Err, compare with key code to the another error.
+// compare code with err1 and err2.
 //
 // Param
-// err1 -- error one which want to compare.
-// err2 -- error two which want to compare.
+// err1 -- first error which want to compare.
+// err2 -- another error which want to compare.
 //
 // Return
-// return ture is same, or return false.
+// return the result of comparing.
 func Equal(err1 error, err2 error) bool {
 	return equal(err1, err2)
 }
@@ -61,22 +59,8 @@ func equal(err1 error, err2 error) bool {
 		return false
 	}
 
-	// check Error type
-	// if they are Error type,using errImpl compare.
-	eImpl1, ok1 := err1.(*errImpl)
-	eImpl2, ok2 := err2.(*errImpl)
-	if ok1 && ok2 {
-		return eImpl1.Code() == eImpl2.Code()
-	}
-
-	// if they are standar error,
-	// compare the Message data.
-	eMsg1 := err1.Error()
-	eMsg2 := err2.Error()
-	if eMsg1 == eMsg2 {
-		return true
-	}
-	return parse(eMsg1).Code() == parse(eMsg2).Code()
+	eImpl1, eImpl2 := ParseError(err1), ParseError(err2)
+	return eImpl1.Code() == eImpl2.Code()
 }
 
 type ErrData struct {
@@ -90,13 +74,13 @@ type errImpl struct {
 }
 
 // New
-// create an Error implement error interface.
+// create an Error which it is implemented error interface.
 //
 // Param
-// code -- code or msg for the error struct,it will be a key.
+// code -- code or msg for the error keycode.
 //
 // Return
-// return a new Error interface
+// return a Error interface
 func New(code string) Error {
 	return &errImpl{
 		ErrData{
@@ -108,8 +92,8 @@ func New(code string) Error {
 }
 
 // ParseError
-// Parse a standar error to Error interface.
-// if the parameter is belong to Err, do a value copy an return a new Err.
+// Parse a standar error to this Error interface.
+// if the parameter is belong to this Error, do a value copy an return a new Err.
 // or parse string with error.Error(),
 // if the string have a json struct with Err.Error(),return the origin struct with a new Err.
 // or using error.Error() to create a new Err.
